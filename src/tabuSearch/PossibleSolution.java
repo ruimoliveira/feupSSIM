@@ -16,8 +16,6 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	private ArrayList<Pair> pair;
 	private int objectiveFunction;
 	private double fitness;
-	private double selectionProbability;
-	private int trials;
 	private HashMap<Aircraft, ArrayList<Date>> map;
 
 	
@@ -31,8 +29,6 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		this.pair = new ArrayList<Pair>();
 		this.objectiveFunction = 0; // objective function
 		this.fitness = 0.0;
-		this.selectionProbability = 0.0;
-		this.trials = 0;
 		this.map = new HashMap<Aircraft, ArrayList<Date>>();
 		for (Aircraft ac : aircrafts) {
 			map.put(ac, new ArrayList<Date>());
@@ -137,27 +133,19 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	public int compareTo(PossibleSolution fs) {
 		return this.objectiveFunction - fs.getObjectiveFunction();
 	}
+	
 	public int getObjectiveFunction() {
 		return this.objectiveFunction;
 	}
+	
 	public double getFitness() {
 		return this.fitness;
 	}
+	
 	public void setFitness(double fitness) {
 		this.fitness = fitness;
 	}
-	public void setSelectionProbability(double selectionProbability) {
-		this.selectionProbability = selectionProbability;
-	}
-	public double getSelectionProbability() {
-		return this.selectionProbability;
-	}
-	public int getTrials() {
-		return this.trials;
-	}
-	public void setTrials(int trials) {
-		this.trials = trials;
-	}
+	
 	public ArrayList<String> print() {
 		ArrayList<String> list = new ArrayList<String>();
 		for (Pair p : pair) {

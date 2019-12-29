@@ -1,6 +1,8 @@
 package tabuSearch;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Random;
 
 import tabuSearch.PossibleSolution;
@@ -28,6 +30,8 @@ public class TabuSearch {
 	/* Tabu Search Parameters */
 	private static int MAX_CYCLE_NUMBER;
 	private static int TABU_LIST_SIZE;
+	
+	private static LinkedList<AbstractMap.SimpleEntry<Integer, Integer>> tabuList;
 	
 	private static ArrayList<PossibleSolution> possibleSolutions;
 	private static PossibleSolution gBest;
@@ -85,6 +89,8 @@ public class TabuSearch {
 		TABU_LIST_SIZE = 0;
 		
 		possibleSolutions = null;
+		
+		tabuList = null;
 	
 		gBest = null;
 		gBestValue = Integer.MAX_VALUE;
@@ -106,11 +112,22 @@ public class TabuSearch {
 		gBest = null;
 		possibleSolutions = new ArrayList<PossibleSolution>();
 		
+		tabuList = new LinkedList<>();
+		
 		rand = new Random();
 	}
 	
 	private static void tsAlgorithm() {
-		// TODO Auto-generated method stub
+		// TODO:
 		
+		/* create a random solution */
+		//PossibleSolution sBest = randomSolution();
+		
+		for(iteration=1; iteration <= MAX_CYCLE_NUMBER; iteration++) {
+			/* create solution candidates array*/
+			//ArrayList<PossibleSolution> candidateList = new ArrayList<>();
+			
+			//create S neighborhood 
+		}
 	}
 }
