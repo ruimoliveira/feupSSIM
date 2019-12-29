@@ -1,4 +1,4 @@
-package TabuSearch;
+package tabuSearch;
 
 import java.util.ArrayList;
 
@@ -22,7 +22,10 @@ public class TabuSearch {
 	private static boolean ALLOWED_TO_CANCEL; // Allow to cancel flights, assigning NULL aircraft
 	
 	/* Tabu Search Parameters */
+	private static int MAX_CYCLE_NUMBER;
 	private static int TABU_LIST_SIZE;
+	private static int FOOD_NUMBER; // -> COLONY_SIZE/2
+	private static int LIMIT;
 	
 	
 }
