@@ -5,7 +5,7 @@ import info.DATA;
 import info.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
-//import TabuSearch.PossibleSolution;
+import tabuSearch.PossibleSolution;
 import utils.Pair;
 
 /**
