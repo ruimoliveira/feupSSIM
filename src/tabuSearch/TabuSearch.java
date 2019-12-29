@@ -127,7 +127,22 @@ public class TabuSearch {
 			/* create solution candidates array*/
 			//ArrayList<PossibleSolution> candidateList = new ArrayList<>();
 			
-			//create S neighborhood 
+			/*
+		    For ( Scandidate : Sbest-neighborhood )
+		        If ( ! ContainsAnyFeatures( Scandidate , TabuList))
+		            CandidateList .add (Scandidate)
+		        End
+		    End
+		    Scandidate = LocateBestCandidate(CandidateList)
+		    If (Cost(Scandidate) <= Cost(sBest))
+		          sBest = Scandidate
+		        TabuList .add FeatureDifferences(Scandidate , sBest)
+		        While (TabuListSize > TabuListMaxSize)
+		            DeleteFeature(TabuList)
+		        End
+		    End
+		    */
 		}
+		
 	}
 }
