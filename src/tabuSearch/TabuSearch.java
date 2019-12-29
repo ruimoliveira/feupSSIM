@@ -28,9 +28,6 @@ public class TabuSearch {
 	/* Tabu Search Parameters */
 	private static int MAX_CYCLE_NUMBER;
 	private static int TABU_LIST_SIZE;
-	private static int FOOD_NUMBER; // -> COLONY_SIZE/2
-	private static int LIMIT;
-
 	
 	private static ArrayList<PossibleSolution> possibleSolutions;
 	private static PossibleSolution gBest;
@@ -44,9 +41,8 @@ public class TabuSearch {
 	 * Executes the Tabu Search algorithm with given parameters. 
 	 * @param max_cycle_number
 	 * @param tabu_list_size
-	 * @param limit_divider max number of cycles 
 	 */
-	public static void execute(int max_cycle_number, int tabu_list_size, int limit_divider) {
+	public static void execute(int max_cycle_number, int tabu_list_size) {
 		long timeline = System.currentTimeMillis();
 		System.out.println("Tabu Search - initializing...");
 		Reader.readAll();
@@ -61,7 +57,7 @@ public class TabuSearch {
 		System.out.println("Initializing.");
 		
 		/* Initializing ABC parameters */
-		initialize(max_cycle_number, tabu_list_size, limit_divider);
+		initialize(max_cycle_number, tabu_list_size);
 
 		/* Executing algorithm */
 		System.out.println("Tabu Search Algorithm - Starting now...");
@@ -87,8 +83,6 @@ public class TabuSearch {
 		
 		MAX_CYCLE_NUMBER = 0;
 		TABU_LIST_SIZE = 0;
-		FOOD_NUMBER = 0; // -> COLONY_SIZE/2
-		LIMIT = 0;
 		
 		possibleSolutions = null;
 	
@@ -100,14 +94,13 @@ public class TabuSearch {
 	/**
 	 * Initialization of the parameters of ABC algorithm.
 	 */
-	public static void initialize(int max_cycle_number, int colony_size, int limit_divider) {
+	public static void initialize(int max_cycle_number, int tabu_list_size) {
 		aircrafts = DATA.getAircrafts();
 		FLIGHTS_COUNT = DATA.getFlights().size();
 		AIRCRAFTS_COUNT = aircrafts.size();
 		
 		MAX_CYCLE_NUMBER = max_cycle_number;
-		TABU_LIST_SIZE = colony_size;
-		LIMIT = MAX_CYCLE_NUMBER / limit_divider; 
+		TABU_LIST_SIZE = tabu_list_size;
 		
 		firstBest = 0;
 		gBest = null;
