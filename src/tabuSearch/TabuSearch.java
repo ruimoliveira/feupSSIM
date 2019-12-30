@@ -2,13 +2,17 @@ package tabuSearch;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
 import tabuSearch.PossibleSolution;
+import utils.Pair;
 import utils.Reader;
 import info.Aircraft;
 import info.DATA;
+import info.Date;
+import info.Flight;
 
 /**
  * Class representing the Tabu Search algorithm.
@@ -118,22 +122,28 @@ public class TabuSearch {
 	}
 	
 	private static void tsAlgorithm() {
-		// TODO:
 		
 		/* create a random solution */
-		//PossibleSolution sBest = randomSolution();
+		PossibleSolution sBest = randomSolution();
 		
 		for(iteration=1; iteration <= MAX_CYCLE_NUMBER; iteration++) {
 			/* create solution candidates array*/
-			//ArrayList<PossibleSolution> candidateList = new ArrayList<>();
-			
+			ArrayList<PossibleSolution> candidateList = new ArrayList<>();
+
+			// TODO:
+			/* generate all sBest neighborhood solutions */
 			/*
 		    For ( Scandidate : Sbest-neighborhood )
 		        If ( ! ContainsAnyFeatures( Scandidate , TabuList))
 		            CandidateList .add (Scandidate)
 		        End
 		    End
-		    Scandidate = LocateBestCandidate(CandidateList)
+		    */
+			
+			/* get best candidate */
+		    // sCandidate = LocateBestCandidate(CandidateList)
+			
+			/*
 		    If (Cost(Scandidate) <= Cost(sBest))
 		          sBest = Scandidate
 		        TabuList .add FeatureDifferences(Scandidate , sBest)
@@ -143,6 +153,57 @@ public class TabuSearch {
 		    End
 		    */
 		}
+	}
+
+	private static PossibleSolution randomSolution() {
+		PossibleSolution ps = new PossibleSolution(FLIGHTS_COUNT, aircrafts);
 		
+		// dataset for checking feasibility
+		HashMap<Aircraft, ArrayList<Date>> operationalDates = new HashMap<Aircraft, ArrayList<Date>>();
+		for (Aircraft ac : aircrafts) {
+			operationalDates.put(ac, new ArrayList<Date>());
+		}
+		
+		// create random solution -> contains set of pairs <flight, aircraft>, it's fitness, ...
+		ArrayList<Pair> tempPairs = new ArrayList<Pair>();
+		for (int j = 0; j < FLIGHTS_COUNT; j++) {
+			int flightIndex = j;
+			int aircraftIndex = rand.nextInt(AIRCRAFTS_COUNT);
+
+			Pair newPair = new Pair();
+			Flight flight = DATA.getFlights().get(flightIndex);
+			newPair.setFlight(flight);
+			newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
+			
+			while(!isFeasible(operationalDates, aircrafts.get(aircraftIndex), flight.getFlight_date())) {
+				aircraftIndex = rand.nextInt(AIRCRAFTS_COUNT);
+				newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
+			}
+			tempPairs.add(newPair);
+			operationalDates.get(aircrafts.get(aircraftIndex)).add(flight.getFlight_date());
+		}
+		
+		// pairing possibleSolution -> list<flight, aircraft>
+		if (ps.setPair(tempPairs) != FLIGHTS_COUNT)
+			System.out.println("Wrong flight-aircraft pairing! - init phase");
+		
+		// computing the value of objective function for the food source
+		ps.setMap(operationalDates);
+		ps.computeObjectiveFunction();
+		
+		return ps;
+	}
+
+	/**
+	 * Checks if aircraft already operates on the certain date in same solution
+	 * @param operationalDates
+	 * @param aircraft
+	 * @param flight_date
+	 * @return true if aircraft is free on flight_date
+	 */
+	private static boolean isFeasible(HashMap<Aircraft, ArrayList<Date>> operationalDates, Aircraft aircraft,
+			Date flight_date) {
+		if (operationalDates.get(aircraft).contains(flight_date)) return false;
+		return true;
 	}
 }
