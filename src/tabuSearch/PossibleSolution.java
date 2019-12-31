@@ -111,14 +111,14 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						/*Distance Between Airports*/
 						
 						/*Time to get there*/
-						int flightTime = nextFlight.getSchedule_time_of_departure().difWithMinutes(previousFlight.getSchedule_time_of_arrival());
+						int flightTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(previousFlight.getSchedule_time_of_departure());
 						/*Time to get there*/
 						
 						/* if not possible to fly there: apply major penalty cost 
 						 * (arbitrarily, it takes at least 10 minutes per km for a plane to get somewhere)
 						 * */
 						if (distanceKM/flightTime > 10.0) {
-							value += 10000000;
+							value += 100000.0;
 						}
 						/* introduce new flight cost */
 						else {
@@ -130,7 +130,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						
 					} else {
 						/* Computes park time from previous flight */
-						parkTime = previousFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
+						parkTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
 					}
 					
 				} else {
@@ -151,9 +151,9 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					}
 				}
 				/*Distance Between Airports*/
-				
+
 				/*Time to get there*/
-				int flightTime = nextFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
+				int flightTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
 				/*Time to get there*/
 				
 				value += computeFlightCost(fleet_model, flightOrigin, flightDestination, flightTime, parkTime, airport_handling_cost, fuel_per_minute, maintenance_perminute, atc_per_mile, distanceMiles);
@@ -218,7 +218,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	}
 
 	public int compareTo(PossibleSolution fs) {
-		return this.fitness - fs.getFitness();
+		return (int)(this.fitness - fs.getFitness());
 	}
 	
 	public int getFitness() {
@@ -277,9 +277,13 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		
 		for (int aircraftIndex1=0; aircraftIndex1<solution.size(); aircraftIndex1++) {
 			for (int aircraftIndex2=1; aircraftIndex1<solution.size(); aircraftIndex1++) {
-				tabuListEntrie = new int[]{aircraftIndex1, aircraftIndex2};
 				
-				/* TODO: here*/
+				
+				this.tabuListEntrie = new int[]{aircraftIndex1, aircraftIndex2};
+				
+				/* TODO: replace on solution*/
+				/* build */
+				/* compute fitness */
 			}
 		}
 		
