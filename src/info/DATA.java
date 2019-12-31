@@ -16,7 +16,9 @@ public class DATA {
 	public static void addAirportCharge(AirportCharge ac) {airport_charges.add(ac);}
 	public static void addCityPair(CityPair cp) {city_pairs.add(cp);}
 	public static void addEvent(Event e) {events.add(e);}
-	public static void addFlight(Flight f) {flights.add(f);}
+	public static void addFlight(Flight f) {
+		flights.add(f);
+	}
 	
 	/*
 	 * Sort flights by departure
@@ -31,6 +33,27 @@ public class DATA {
 					Flight temp = flights.get(i);
 					flights.set(i, flights.get(i + 1));
 					flights.set(i + 1, temp);
+					changes++;
+				}
+			}
+			if (changes == 0)
+				done = true;
+		}
+	}
+	
+	/*
+	 * Sort flights by departure
+	 */
+	public static void bubbleSortFlights(ArrayList<Flight> fl) {
+		boolean done = false;
+		while (!done) {
+			int changes = 0;
+			int listSize = fl.size();
+			for (int i = 0; i < listSize - 1; i++) {
+				if (fl.get(i).getSchedule_time_of_departure().compareTo(fl.get(i + 1).getSchedule_time_of_departure()) == 1) {
+					Flight temp = fl.get(i);
+					fl.set(i, fl.get(i + 1));
+					fl.set(i + 1, temp);
 					changes++;
 				}
 			}

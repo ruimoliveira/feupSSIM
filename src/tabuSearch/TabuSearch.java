@@ -12,6 +12,7 @@ import utils.Reader;
 import info.Aircraft;
 import info.DATA;
 import info.Date;
+import info.Event;
 import info.Flight;
 
 /**
@@ -30,6 +31,7 @@ public class TabuSearch {
 	private static int AIRCRAFTS_COUNT;
 	private static ArrayList<Aircraft> aircrafts;
 	private static boolean ALLOWED_TO_CANCEL; // Allow to cancel flights, assigning NULL aircraft
+	private static PossibleSolution initialSolution;
 	
 	/* Tabu Search Parameters */
 	private static int MAX_CYCLE_NUMBER;
@@ -44,7 +46,13 @@ public class TabuSearch {
 	private static int gBestValue;
 	
 	private static Random rand;
-
+	
+	/* Solution utilities */
+	private static ArrayList<ArrayList<Flight>> flightPaths;
+	private static ArrayList<Integer> aircraftIndexes;
+	private static PossibleSolution prototypeSolution;
+	private static Flight nextFlight;
+	
 	/**
 	 * Executes the Tabu Search algorithm with given parameters. 
 	 * @param max_cycle_number
@@ -59,14 +67,25 @@ public class TabuSearch {
 			DATA.addAircraft(new Aircraft()); 
 		}
 		
-		System.out.println("\t- All data was read and initialized. \n\t- Time elapsed: "
+		System.out.println("\t- All data was read. \n\t- Time elapsed: "
 						+ (System.currentTimeMillis() - timeline) + "ms.\n");
 		clean();
 		System.out.println("Initializing.");
 		
-		/* Initializing ABC parameters */
+		/* Initializing Tabu Search parameters */
 		initialize(max_cycle_number, tabu_list_size);
+		
+		System.out.println("\t- All data was initialized. \n\t- Time elapsed: "
+						+ (System.currentTimeMillis() - timeline) + "ms.\n");
+		System.out.println("Generating a delay on a random flight...");
 
+		/* Generating random event */
+		prepareSolutionPrototype();
+		/* Generating random event */
+		
+		System.out.println("\t- Delay inserted, solution prototype prepared. \n\t- Time elapsed: "
+						+ (System.currentTimeMillis() - timeline) + "ms.\n");
+		
 		/* Executing algorithm */
 		System.out.println("Tabu Search Algorithm - Starting now...");
 		tsAlgorithm();
@@ -99,6 +118,10 @@ public class TabuSearch {
 		gBest = null;
 		gBestValue = Integer.MAX_VALUE;
 		firstBest = Integer.MAX_VALUE;
+		
+		flightPaths = null;
+		prototypeSolution = null;
+		nextFlight = null;
 	}
 
 	/**
@@ -108,6 +131,27 @@ public class TabuSearch {
 		aircrafts = DATA.getAircrafts();
 		FLIGHTS_COUNT = DATA.getFlights().size();
 		AIRCRAFTS_COUNT = aircrafts.size();
+		
+		/* initial Flights and Aircrafts */
+		initialSolution = new PossibleSolution(FLIGHTS_COUNT, aircrafts);
+		
+		HashMap<Aircraft, ArrayList<Flight>> operationalDates = new HashMap<Aircraft, ArrayList<Flight>>();
+		
+		for (int index=0; index<aircrafts.size(); index++) {
+			ArrayList<Flight> fl = new ArrayList<Flight>();
+			
+			for (Flight f : DATA.getFlights()) {
+				if (f.getTail_number().equals(aircrafts.get(index).getTail_number())) {
+					fl.add(f);
+				}
+			}
+
+			DATA.bubbleSortFlights(fl);
+			operationalDates.put(aircrafts.get(index), fl);
+		}
+		
+		initialSolution.setMap(operationalDates);
+		/* initial Flights and Aircrafts */
 		
 		MAX_CYCLE_NUMBER = max_cycle_number;
 		TABU_LIST_SIZE = tabu_list_size;
@@ -119,6 +163,83 @@ public class TabuSearch {
 		tabuList = new LinkedList<>();
 		
 		rand = new Random();
+		
+		flightPaths = new ArrayList<>();
+	}
+	
+	private static void prepareSolutionPrototype() {
+		/* if we wanted to delay a random flight: */
+		//Flight delayedFlight = DATA.getFlights().get(rand.nextInt(DATA.getFlights().size()));
+		
+		/* we decided to pick one random flight on 2009-9-01 and then use the same for all the experiments */
+		Flight delayedFlight = DATA.getFlights().get(5820);
+		Aircraft delayedAircraft = new Aircraft();
+		
+		int aircraftIndex;
+		for (aircraftIndex=0; aircraftIndex<aircrafts.size(); aircraftIndex++) {
+			if (aircrafts.get(aircraftIndex).getTail_number().equals(delayedFlight.getTail_number())) {
+				delayedAircraft = aircrafts.get(aircraftIndex);
+				break;
+			}
+		}
+
+		/* we give a manual 1h delay on the flight's departure and consequently arrival */
+		ArrayList<Flight> flightPath = initialSolution.getMap().get(aircrafts.get(aircraftIndex));
+		ArrayList<Flight> incompleteFlightPath = new ArrayList<>();
+		ArrayList<Flight> flightPathToDistribute = new ArrayList<>();
+		boolean hasDelayedFlight = false;
+		boolean canMoveOn = false;
+		for (Flight f : flightPath) {			
+			/* give delay */
+			if (f.getSchedule_time_of_departure().toString().equals(delayedFlight.getSchedule_time_of_departure().toString())) {
+				f.setSchedule_time_of_departure(new Date("2009-09-01 09:05:00"));
+				f.setSchedule_time_of_arrival(new Date("2009-09-01 10:20:00"));
+				delayedFlight = f;
+				hasDelayedFlight = true;
+			}
+			
+			/* generate new flight paths to add to airplane schedule (hashmap) and to undistributedFlightPaths*/
+			if (hasDelayedFlight && canMoveOn) {
+				flightPathToDistribute.add(f);
+				if (nextFlight == null) {
+					nextFlight = f;
+				}
+			} else {
+				incompleteFlightPath.add(f);
+				if (hasDelayedFlight)
+					canMoveOn = true;
+			}
+		}
+		
+		/*set flight paths*/
+		ArrayList<ArrayList<Flight>> undistributedFlightPaths = new ArrayList<>();
+		undistributedFlightPaths.add(flightPathToDistribute);
+		initialSolution.getMap().put(aircrafts.get(aircraftIndex), incompleteFlightPath);
+		
+		/* frees all aircrafts of the same model to re-distribute flight paths among them */
+		for (int i=0; i<aircrafts.size(); i++) {
+			incompleteFlightPath = new ArrayList<>();
+			flightPathToDistribute = new ArrayList<>();
+			
+			Aircraft a = aircrafts.get(i);
+			flightPath = initialSolution.getMap().get(a);
+			if (a.getAircraft_model().equals(delayedAircraft.getAircraft_model()) && i != aircraftIndex) {
+				for (Flight f : flightPath) {
+					if (f.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) == -1) {
+						incompleteFlightPath.add(f);
+					} else {
+						flightPathToDistribute.add(f);
+					}
+				}
+
+				if (flightPathToDistribute.size()>0) {					
+					undistributedFlightPaths.add(flightPathToDistribute);
+					initialSolution.getMap().put(a, incompleteFlightPath);
+				}
+			}
+		}
+		
+		System.out.print("asd");
 	}
 	
 	private static void tsAlgorithm() {
@@ -157,11 +278,11 @@ public class TabuSearch {
 
 	private static PossibleSolution randomSolution() {
 		PossibleSolution ps = new PossibleSolution(FLIGHTS_COUNT, aircrafts);
-		
+		/*
 		// dataset for checking feasibility
-		HashMap<Aircraft, ArrayList<Date>> operationalDates = new HashMap<Aircraft, ArrayList<Date>>();
+		HashMap<Aircraft, ArrayList<Flight>> operationalDates = new HashMap<Aircraft, ArrayList<Flight>>();
 		for (Aircraft ac : aircrafts) {
-			operationalDates.put(ac, new ArrayList<Date>());
+			operationalDates.put(ac, new ArrayList<Flight>());
 		}
 		
 		// create random solution -> contains set of pairs <flight, aircraft>, it's fitness, ...
@@ -175,12 +296,12 @@ public class TabuSearch {
 			newPair.setFlight(flight);
 			newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
 			
-			while(!isFeasible(operationalDates, aircrafts.get(aircraftIndex), flight.getFlight_date())) {
+			while(!isFeasible(operationalDates, aircrafts.get(aircraftIndex), flight)) {
 				aircraftIndex = rand.nextInt(AIRCRAFTS_COUNT);
 				newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
 			}
 			tempPairs.add(newPair);
-			operationalDates.get(aircrafts.get(aircraftIndex)).add(flight.getFlight_date());
+			operationalDates.get(aircrafts.get(aircraftIndex)).add(flight);
 		}
 		
 		// pairing possibleSolution -> list<flight, aircraft>
@@ -190,7 +311,7 @@ public class TabuSearch {
 		// computing the value of objective function for the food source
 		ps.setMap(operationalDates);
 		ps.computeObjectiveFunction();
-		
+		*/
 		return ps;
 	}
 
@@ -198,12 +319,19 @@ public class TabuSearch {
 	 * Checks if aircraft already operates on the certain date in same solution
 	 * @param operationalDates
 	 * @param aircraft
-	 * @param flight_date
+	 * @param flight
 	 * @return true if aircraft is free on flight_date
 	 */
-	private static boolean isFeasible(HashMap<Aircraft, ArrayList<Date>> operationalDates, Aircraft aircraft,
-			Date flight_date) {
-		if (operationalDates.get(aircraft).contains(flight_date)) return false;
+	private static boolean isFeasible(HashMap<Aircraft, ArrayList<Flight>> operationalDates, Aircraft aircraft, Flight flight) {
+		
+		for (Flight f : operationalDates.get(aircraft)) {
+			if ( ! ((f.getSchedule_time_of_departure().compareTo(flight.getSchedule_time_of_departure()) == -1 &&
+					f.getSchedule_time_of_arrival().compareTo(flight.getSchedule_time_of_departure()) == -1) || 
+					(f.getSchedule_time_of_departure().compareTo(flight.getSchedule_time_of_arrival()) == 1 &&
+					f.getSchedule_time_of_arrival().compareTo(flight.getSchedule_time_of_arrival()) == 1)) )
+				return false;
+		}
+		
 		return true;
 	}
 }
