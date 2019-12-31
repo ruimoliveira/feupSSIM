@@ -283,9 +283,6 @@ public class TabuSearch {
 		
 		ArrayList<ArrayList<Flight>> availableFlightPaths = new ArrayList<>(possibleFlightPaths);
 		ArrayList<Integer> availableAircrafts = new ArrayList<>(aircraftIndexes);
-
-		int a = availableFlightPaths.size();
-		int b = availableAircrafts.size();
 		
 		boolean hasRandomSolution = false;
 		
@@ -293,6 +290,13 @@ public class TabuSearch {
 			int flightPathIndex = rand.nextInt(availableFlightPaths.size());
 			int aircraftIndex = rand.nextInt(availableAircrafts.size());
 			
+			Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
+			Aircraft a = aircrafts.get(aircraftIndex);
+			
+			
+			if (availableFlightPaths.size() == 0 && availableAircrafts.size() == 0) {
+				hasRandomSolution = true;
+			}
 		}
 		
 		/*
