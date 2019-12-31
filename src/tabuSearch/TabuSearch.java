@@ -244,37 +244,29 @@ public class TabuSearch {
 	private static void tsAlgorithm() {
 		/* create a random solution */
 		PossibleSolution sBest = randomSolution();
+		PossibleSolution bestNeighbor = null;
 		
 		for(iteration=1; iteration <= MAX_CYCLE_NUMBER; iteration++) {
 			/* gets all solution candidates in the neighborhood */
 			ArrayList<PossibleSolution> candidateList = new ArrayList<>();
+			
+			
 			for (PossibleSolution candidate : sBest.generateNeighborhood(aircrafts, prototypeSolution)) {
 				if (!tabuList.contains(candidate.getTabuListEntrie())) {
 					candidateList.add(candidate);
+					if (bestNeighbor == null || bestNeighbor.compareTo(candidate) > 0) {
+						bestNeighbor = candidate;
+					}
 				}
 			}
 			
-			// TODO:
-			/*
-		    For ( Scandidate : Sbest-neighborhood )
-		        If ( ! ContainsAnyFeatures( Scandidate , TabuList))
-		            CandidateList .add (Scandidate)
-		        End
-		    End
-		    */
-			
-			/* get best candidate */
-		    // sCandidate = LocateBestCandidate(CandidateList)
-			
-			/*
-		    If (Cost(Scandidate) <= Cost(sBest))
-		          sBest = Scandidate
-		        TabuList .add FeatureDifferences(Scandidate , sBest)
-		        While (TabuListSize > TabuListMaxSize)
-		            DeleteFeature(TabuList)
-		        End
-		    End
-		    */
+			if (sBest.compareTo(bestNeighbor) > 0) {
+				sBest = bestNeighbor;
+				tabuList.add(sBest.getTabuListEntrie());
+				while (tabuList.size() > TABU_LIST_SIZE) {
+					tabuList.poll();
+				}
+			}
 		}
 	}
 

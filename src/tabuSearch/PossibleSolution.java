@@ -19,7 +19,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	private HashMap<Aircraft, ArrayList<Flight>> map;
 	private ArrayList<Integer> solution;
 	private ArrayList<ArrayList<Flight>> newFlightPaths;
-	private int[] tabuListEntrie = new int[2];
+	private Integer[] tabuListEntrie = new Integer[2];
 
 	
 	/**
@@ -36,7 +36,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		}
 		this.solution = new ArrayList<Integer>();
 		this.newFlightPaths = new ArrayList<ArrayList<Flight>>();
-		this.tabuListEntrie = new int[2];
+		this.tabuListEntrie = new Integer[2];
 	}
 	
 	public void buildSolution(ArrayList<Aircraft> aircrafts) {
@@ -218,7 +218,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	}
 
 	public int compareTo(PossibleSolution fs) {
-		// positive if better fitness
+		// positive means fs worse
 		return (int)(this.fitness - fs.getFitness());
 	}
 	
@@ -273,11 +273,11 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		return newSolution;
 	}
 	
-	public int[] getTabuListEntrie() {
+	public Integer[] getTabuListEntrie() {
 		return this.tabuListEntrie;
 	}
 	
-	public void setTabuListEntrie(int[] tabuListEntrie) {
+	public void setTabuListEntrie(Integer[] tabuListEntrie) {
 		this.tabuListEntrie = tabuListEntrie;
 	}
 	
@@ -303,7 +303,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 				possibleFlightPaths.set(positionIndex2, this.newFlightPaths.get(positionIndex1));
 				
 				/* makes tabu list entrie */
-				int[] newTabuListEntrie = new int[]{positionIndex1, positionIndex2};
+				Integer[] newTabuListEntrie = new Integer[]{positionIndex1, positionIndex2};
 				
 				/* makes possible solution */
 				PossibleSolution candidate = prototypeSolution.manualCopy(aircrafts);
