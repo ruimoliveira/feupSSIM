@@ -14,10 +14,11 @@ import utils.Pair;
  */
 public class PossibleSolution implements Comparable<PossibleSolution> {
 	private int DIMENSION;
-	private int fitness;
+	private double fitness;
 	private HashMap<Aircraft, ArrayList<Flight>> map;
 	private ArrayList<Integer> solution;
 	private ArrayList<ArrayList<Flight>> newFlightPaths;
+	private int[] tabuListEntrie = new int[2];
 
 	
 	/**
@@ -34,23 +35,58 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		}
 		this.solution = new ArrayList<Integer>();
 		this.newFlightPaths = new ArrayList<ArrayList<Flight>>();
+		this.tabuListEntrie = new int[2];
 	}
-	/*
-	public void computeObjectiveFunction(){
+	
+	public void buildSolution(ArrayList<Aircraft> aircrafts) {
+		for (int flightPathIndex=0; flightPathIndex<solution.size(); flightPathIndex++) {
+			ArrayList<Flight> newFlightPath = new ArrayList<Flight>();
+			int aircraftIndex = solution.get(flightPathIndex);
+			newFlightPath.addAll(map.get(aircrafts.get(aircraftIndex)));
+		}
+	}
+	
+	public void computeFitness(ArrayList<Aircraft> aircrafts){
+		double value = 0.0;
+		
+		for (Aircraft a : aircrafts) {
+			Flight previousFlight = null;
+			for (Flight nextFlight : map.get(a)) {
+				/* verify if flight is departing the airport it arrived on 
+				 * if not: make new flight to that airport
+				 * if not possible: apply major penalty cost
+				 * */
+				if (previousFlight != null) {
+					if (!previousFlight.getDestination().equals(nextFlight.getOrigin())) {
+						
+					}
+				}
+				
+				
+				
+			}
+		}
+		/*
+		Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
+		Aircraft a = aircrafts.get(aircraftIndex);
+		ArrayList<Flight> aFlightPath = possibleSolution.getMap().get(a);
+		Flight aircraftsLastFlight = aFlightPath.get(aFlightPath.size()-1);
+		*/
+		
 		double value = 0.0;
 		for(int i = 0; i < DIMENSION; i++){
-			/*Check if Aircraft is null. Flight canceled!*
+			/*Check if Aircraft is null. Flight canceled!*/
 			if(pair.get(i).getAircraft() == null){
 				value += 100000;
 				break;
 			}
 			
 			String model = pair.get(i).getAircraft().getAircraft_model();
-			/*Time Difference for Schedule*
+			/*Time Difference for Schedule*/
 			int timeSDif = pair.get(i).getFlight().getSchedule_time_of_arrival().difWithMinutes(pair.get(i).getFlight().getSchedule_time_of_departure());
-			/*Time Difference for Schedule*
+			/*Time Difference for Schedule*/
 			
-			/*Distance Between Airports*
+			/*Distance Between Airports*/
 			String flightOrigin = pair.get(i).getFlight().getOrigin();
 			String flightDestination = pair.get(i).getFlight().getDestination();
 			int cityPairSize = DATA.getCity_pairs().size();
@@ -61,28 +97,28 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					break;
 				}
 			}
-			/*Distance Between Airports*
+			/*Distance Between Airports*/
 			
 			int aircraftModelSize = DATA.getAircraft_models().size();
 			for(int j = 0; j < aircraftModelSize; j++){
 				if(DATA.getAircraft_models().get(j).getAircraft_model().equals(model)){
-					/*Handling*
+					/*Handling*/
 					value += (DATA.getAircraft_models().get(j).getAirport_handling_cost() * 2);
 					/*Handling*/
 					
-					/*Fuel Cost Using Schedule Time Difference*
+					/*Fuel Cost Using Schedule Time Difference*/
 					value += (DATA.getAircraft_models().get(j).getFuel_avg_cost_minute() * timeSDif);
 					/*Fuel Cost Using Schedule Time Difference*/
 					
-					/*Maintenance Cost Using Schedule Time Difference*
+					/*Maintenance Cost Using Schedule Time Difference*/
 					value += (DATA.getAircraft_models().get(j).getMaintenance_avg_cost_minute() * timeSDif);
 					/*Maintenance Cost Using Schedule Time Difference*/
 					
-					/*ATC Cost Using Distance Between Airports*
+					/*ATC Cost Using Distance Between Airports*/
 					value += (DATA.getAircraft_models().get(j).getAtc_avg_cost_nautical_mile() * distanceNauticalMiles);
 					/*ATC Cost Using Distance Between Airports*/
 					
-					/*Get charges from Airports (TkOff, Land and Park)*
+					/*Get charges from Airports (TkOff, Land and Park)*/
 					String modelFleet = DATA.getAircraft_models().get(j).getFleet();
 					int airportChargeSize = DATA.getAirport_charges().size();
 					for(int k = 0, kk = 0; k < airportChargeSize; k++){
@@ -107,19 +143,15 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						if(kk==3)
 							break;
 					}
-					/*Get charges from Airports (TkOff, Land and Park)*
+					/*Get charges from Airports (TkOff, Land and Park)*/
 					break;
 				}
 			}
 		}
 		fitness = (int) value;
 	}
-	*/
-	public int compareTo(PossibleSolution fs) {
-		return this.fitness - fs.getFitness();
-	}
 	
-	public int getFitness() {
+	public double getFitness() {
 		return this.fitness;
 	}
 	
@@ -168,5 +200,23 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		}
 		
 		return newSolution;
+	}
+	
+	public ArrayList<PossibleSolution> generateNeighborhood(ArrayList<Aircraft> aircrafts) {
+		ArrayList<PossibleSolution> neighborhood = new ArrayList<PossibleSolution>();
+		
+		for (int aircraftIndex1=0; aircraftIndex1<solution.size(); aircraftIndex1++) {
+			for (int aircraftIndex2=1; aircraftIndex1<solution.size(); aircraftIndex1++) {
+				tabuListEntrie = new int[]{aircraftIndex1, aircraftIndex2};
+				
+				/* TODO: here*/
+			}
+		}
+		
+		for (int aircraftIndex : solution) {
+			PossibleSolution candidate = this.manualCopy(aircrafts);
+		}
+		
+		return neighborhood;
 	}
 }

@@ -253,6 +253,10 @@ public class TabuSearch {
 			/* create solution candidates array*/
 			ArrayList<PossibleSolution> candidateList = new ArrayList<>();
 
+			for (PossibleSolution candidate : sBest.generateNeighborhood(aircrafts)) {
+				
+			}
+			
 			// TODO:
 			/* generate all sBest neighborhood solutions */
 			/*
@@ -293,18 +297,15 @@ public class TabuSearch {
 		/* From here on, it is easier to save only aircraftIndexes onto PossibleSolution
 		 * because we can get all the solution information from that arraylist
 		 * */
-		PossibleSolution possibleSolution = prototypeSolution.manualCopy(aircrafts);
+		PossibleSolution randomSolution = prototypeSolution.manualCopy(aircrafts);
 		ArrayList<Integer> solution = new ArrayList<>(aircraftIndexes);
 		prototypeSolution.setSolution(aircraftIndexes, possibleFlightPaths);
-		possibleSolution.setSolution(solution, possibleFlightPaths);
+		randomSolution.setSolution(solution, possibleFlightPaths);
+		
+		randomSolution.buildSolution(aircrafts);
+		randomSolution.computeFitness(aircrafts);
 
-		return possibleSolution;
-		/*
-		Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
-		Aircraft a = aircrafts.get(aircraftIndex);
-		ArrayList<Flight> aFlightPath = possibleSolution.getMap().get(a);
-		Flight aircraftsLastFlight = aFlightPath.get(aFlightPath.size()-1);
-		*/
+		return randomSolution;
 		
 		/*
 		// dataset for checking feasibility
