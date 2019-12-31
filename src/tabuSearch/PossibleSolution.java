@@ -144,4 +144,16 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	public void setMap(HashMap<Aircraft, ArrayList<Flight>> map2) {
 		this.map = map2;
 	}
+	
+	public PossibleSolution manualCopy(ArrayList<Aircraft> aircrafts) {
+		PossibleSolution newSolution = new PossibleSolution(this.DIMENSION, aircrafts);
+		
+		for (Aircraft a : aircrafts) {
+			for (Flight f : this.map.get(a)) {
+				newSolution.getMap().get(a).add(f);
+			}
+		}
+		
+		return newSolution;
+	}
 }

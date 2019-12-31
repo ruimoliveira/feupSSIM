@@ -183,8 +183,10 @@ public class TabuSearch {
 			}
 		}
 
+		prototypeSolution = initialSolution.manualCopy(aircrafts);
+		
 		/* we give a manual 1h delay on the flight's departure and consequently arrival */
-		ArrayList<Flight> flightPath = initialSolution.getMap().get(aircrafts.get(aircraftIndex));
+		ArrayList<Flight> flightPath = prototypeSolution.getMap().get(aircrafts.get(aircraftIndex));
 		ArrayList<Flight> incompleteFlightPath = new ArrayList<>();
 		ArrayList<Flight> flightPathToDistribute = new ArrayList<>();
 		boolean hasDelayedFlight = false;
@@ -214,15 +216,15 @@ public class TabuSearch {
 		/*set flight paths*/
 		ArrayList<ArrayList<Flight>> undistributedFlightPaths = new ArrayList<>();
 		undistributedFlightPaths.add(flightPathToDistribute);
-		initialSolution.getMap().put(aircrafts.get(aircraftIndex), incompleteFlightPath);
+		prototypeSolution.getMap().put(aircrafts.get(aircraftIndex), incompleteFlightPath);
 		
-		/* frees all aircrafts of the same model to re-distribute flight paths among them */
+		/* frees all aircrafts of the same model to re-distribute flight paths among them on the TS algorithm */
 		for (int i=0; i<aircrafts.size(); i++) {
 			incompleteFlightPath = new ArrayList<>();
 			flightPathToDistribute = new ArrayList<>();
 			
 			Aircraft a = aircrafts.get(i);
-			flightPath = initialSolution.getMap().get(a);
+			flightPath = prototypeSolution.getMap().get(a);
 			if (a.getAircraft_model().equals(delayedAircraft.getAircraft_model()) && i != aircraftIndex) {
 				for (Flight f : flightPath) {
 					if (f.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) == -1) {
@@ -231,15 +233,11 @@ public class TabuSearch {
 						flightPathToDistribute.add(f);
 					}
 				}
-
-				if (flightPathToDistribute.size()>0) {					
-					undistributedFlightPaths.add(flightPathToDistribute);
-					initialSolution.getMap().put(a, incompleteFlightPath);
-				}
+			
+				undistributedFlightPaths.add(flightPathToDistribute);
+				prototypeSolution.getMap().put(a, incompleteFlightPath);
 			}
 		}
-		
-		System.out.print("asd");
 	}
 	
 	private static void tsAlgorithm() {
