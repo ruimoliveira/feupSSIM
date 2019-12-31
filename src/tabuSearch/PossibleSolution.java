@@ -45,6 +45,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 			int aircraftIndex = solution.get(flightPathIndex);
 			newFlightPath.addAll(map.get(aircrafts.get(aircraftIndex)));
 			newFlightPath.addAll(newFlightPaths.get(flightPathIndex));
+			this.map.put(aircrafts.get(aircraftIndex), newFlightPath);
 		}
 	}
 	
@@ -275,15 +276,21 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	public ArrayList<PossibleSolution> generateNeighborhood(ArrayList<Aircraft> aircrafts) {
 		ArrayList<PossibleSolution> neighborhood = new ArrayList<PossibleSolution>();
 		
-		for (int aircraftIndex1=0; aircraftIndex1<solution.size(); aircraftIndex1++) {
-			for (int aircraftIndex2=1; aircraftIndex1<solution.size(); aircraftIndex1++) {
+		for (int positionIndex1=0; positionIndex1<solution.size(); positionIndex1++) {
+			int tempAircraftIndex1 = solution.get(positionIndex1);
+			for (int positionIndex2=1; positionIndex2<solution.size(); positionIndex2++) {
+				ArrayList<Integer> newSolution = new ArrayList<Integer>(solution);
+				int tempAircraftIndex2 = solution.get(positionIndex2);
+				newSolution.set(positionIndex1, tempAircraftIndex2);
+				newSolution.set(positionIndex2, tempAircraftIndex1);
+				this.tabuListEntrie = new int[]{positionIndex1, positionIndex2};
 				
-				
-				this.tabuListEntrie = new int[]{aircraftIndex1, aircraftIndex2};
 				
 				/* TODO: replace on solution*/
 				/* build */
 				/* compute fitness */
+				
+				
 			}
 		}
 		
