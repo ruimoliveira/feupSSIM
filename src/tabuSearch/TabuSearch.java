@@ -7,12 +7,10 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import tabuSearch.PossibleSolution;
-import utils.Pair;
 import utils.Reader;
 import info.Aircraft;
 import info.DATA;
 import info.Date;
-import info.Event;
 import info.Flight;
 
 /**
@@ -48,7 +46,7 @@ public class TabuSearch {
 	private static Random rand;
 	
 	/* Solution utilities */
-	private static ArrayList<ArrayList<Flight>> flightPaths;
+	private static ArrayList<ArrayList<Flight>> possibleFlightPaths;
 	private static ArrayList<Integer> aircraftIndexes;
 	private static PossibleSolution prototypeSolution;
 	private static Flight nextFlight;
@@ -119,9 +117,10 @@ public class TabuSearch {
 		gBestValue = Integer.MAX_VALUE;
 		firstBest = Integer.MAX_VALUE;
 		
-		flightPaths = null;
+		possibleFlightPaths = null;
 		prototypeSolution = null;
 		nextFlight = null;
+		aircraftIndexes = null;
 	}
 
 	/**
@@ -164,7 +163,8 @@ public class TabuSearch {
 		
 		rand = new Random();
 		
-		flightPaths = new ArrayList<>();
+		possibleFlightPaths = new ArrayList<>();
+		aircraftIndexes = new ArrayList<>();
 	}
 	
 	private static void prepareSolutionPrototype() {
@@ -217,6 +217,7 @@ public class TabuSearch {
 		ArrayList<ArrayList<Flight>> undistributedFlightPaths = new ArrayList<>();
 		undistributedFlightPaths.add(flightPathToDistribute);
 		prototypeSolution.getMap().put(aircrafts.get(aircraftIndex), incompleteFlightPath);
+		aircraftIndexes.add(aircraftIndex);
 		
 		/* frees all aircrafts of the same model to re-distribute flight paths among them on the TS algorithm */
 		for (int i=0; i<aircrafts.size(); i++) {
@@ -236,8 +237,11 @@ public class TabuSearch {
 			
 				undistributedFlightPaths.add(flightPathToDistribute);
 				prototypeSolution.getMap().put(a, incompleteFlightPath);
+				aircraftIndexes.add(i);
 			}
 		}
+		
+		possibleFlightPaths = undistributedFlightPaths;
 	}
 	
 	private static void tsAlgorithm() {
@@ -275,7 +279,22 @@ public class TabuSearch {
 	}
 
 	private static PossibleSolution randomSolution() {
-		PossibleSolution ps = new PossibleSolution(FLIGHTS_COUNT, aircrafts);
+		PossibleSolution possibleSolution = prototypeSolution.manualCopy(aircrafts);
+		
+		ArrayList<ArrayList<Flight>> availableFlightPaths = new ArrayList<>(possibleFlightPaths);
+		ArrayList<Integer> availableAircrafts = new ArrayList<>(aircraftIndexes);
+
+		int a = availableFlightPaths.size();
+		int b = availableAircrafts.size();
+		
+		boolean hasRandomSolution = false;
+		
+		while (!hasRandomSolution) {
+			int flightPathIndex = rand.nextInt(availableFlightPaths.size());
+			int aircraftIndex = rand.nextInt(availableAircrafts.size());
+			
+		}
+		
 		/*
 		// dataset for checking feasibility
 		HashMap<Aircraft, ArrayList<Flight>> operationalDates = new HashMap<Aircraft, ArrayList<Flight>>();
@@ -310,7 +329,7 @@ public class TabuSearch {
 		ps.setMap(operationalDates);
 		ps.computeObjectiveFunction();
 		*/
-		return ps;
+		return possibleSolution;
 	}
 
 	/**
