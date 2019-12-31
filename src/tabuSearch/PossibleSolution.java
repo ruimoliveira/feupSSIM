@@ -3,6 +3,7 @@ package tabuSearch;
 import info.Aircraft;
 import info.DATA;
 import info.Flight;
+import info.Date;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import utils.Pair;
  */
 public class PossibleSolution implements Comparable<PossibleSolution> {
 	private int DIMENSION;
-	private double fitness;
+	private int fitness;
 	private HashMap<Aircraft, ArrayList<Flight>> map;
 	private ArrayList<Integer> solution;
 	private ArrayList<ArrayList<Flight>> newFlightPaths;
@@ -43,6 +44,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 			ArrayList<Flight> newFlightPath = new ArrayList<Flight>();
 			int aircraftIndex = solution.get(flightPathIndex);
 			newFlightPath.addAll(map.get(aircrafts.get(aircraftIndex)));
+			newFlightPath.addAll(newFlightPaths.get(flightPathIndex));
 		}
 	}
 	
@@ -51,42 +53,105 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		
 		for (Aircraft a : aircrafts) {
 			Flight previousFlight = null;
-			for (Flight nextFlight : map.get(a)) {
-				/* verify if flight is departing the airport it arrived on 
-				 * if not: make new flight to that airport
-				 * if not possible: apply major penalty cost
-				 * */
+			ArrayList<Flight> flightPath = new ArrayList<Flight>(map.get(a));
+			
+			/* Aircraft info */
+			String model = a.getAircraft_model();
+
+			int aircraftModelSize = DATA.getAircraft_models().size(),
+				airport_handling_cost = 0;
+			double fuel_per_minute = 0.0,
+				maintenance_perminute = 0.0,
+				atc_per_mile = 0.0;
+			String fleet_model = null;
+			for(int j = 0; j < aircraftModelSize; j++){
+				if(DATA.getAircraft_models().get(j).getAircraft_model().equals(model)){
+					/*Handling modifier*/
+					airport_handling_cost = DATA.getAircraft_models().get(j).getAirport_handling_cost();
+					
+					/*Fuel Cost modifier*/
+					fuel_per_minute = DATA.getAircraft_models().get(j).getFuel_avg_cost_minute();
+					
+					/*Maintenance Cost modifier*/
+					maintenance_perminute = DATA.getAircraft_models().get(j).getMaintenance_avg_cost_minute();
+
+					/*ATC Cost modifier*/
+					atc_per_mile = DATA.getAircraft_models().get(j).getAtc_avg_cost_nautical_mile();
+					
+					/*Fleet Model*/
+					fleet_model = DATA.getAircraft_models().get(j).getFleet();
+				}
+			}
+			/* Aircraft info */
+			
+			/* Compute each flight cost */
+			for (int flightIndex=0; flightIndex<flightPath.size(); flightIndex++) {
+				Flight nextFlight = flightPath.get(flightIndex);
+				
+				double distanceKM = 0.0;
+				double distanceMiles = 0.0;
+				
 				if (previousFlight != null) {
+					/* verify if flight is departing the airport it arrived on */
 					if (!previousFlight.getDestination().equals(nextFlight.getOrigin())) {
+						/* if not: make new flight to that airport */
 						
+						/*Distance Between Airports*/
+						String flightOrigin = nextFlight.getOrigin();
+						String flightDestination = previousFlight.getDestination();
+						int cityPairSize = DATA.getCity_pairs().size();
+						for(int k = 0; k < cityPairSize; k++){
+							if(DATA.getCity_pairs().get(k).validateOriDest(flightOrigin, flightDestination)){
+								distanceKM = DATA.getCity_pairs().get(k).getDistance_in_km();
+								distanceMiles = DATA.getCity_pairs().get(k).getDistance_in_nautical_miles();
+								break;
+							}
+						}
+						/*Distance Between Airports*/
+						
+						/*Time to get there*/
+						int flightTime = nextFlight.getSchedule_time_of_departure().difWithMinutes(previousFlight.getSchedule_time_of_arrival());
+						/*Time to get there*/
+						
+						/* if not possible to fly there: apply major penalty cost 
+						 * (arbitrarily, it takes at least 10 minutes per km for a plane to get somewhere)
+						 * */
+						if (distanceKM/flightTime > 10.0) {
+							value += 10000000;
+						}
+						/* introduce new flight cost */
+						else {
+							value += computeFlightCost(fleet_model, flightOrigin, flightDestination, flightTime, 0, airport_handling_cost, fuel_per_minute, maintenance_perminute, atc_per_mile, distanceMiles);
+						}
 					}
+					
+					/* Computes park time from previous flight */
+					
+				} else {
+					/* No park time from previous flight because first */
+					
 				}
 				
-				
-				
+				previousFlight = nextFlight;
 			}
+			/* Compute each flight cost */
 		}
+
 		/*
-		Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
-		Aircraft a = aircrafts.get(aircraftIndex);
-		ArrayList<Flight> aFlightPath = possibleSolution.getMap().get(a);
-		Flight aircraftsLastFlight = aFlightPath.get(aFlightPath.size()-1);
-		*/
-		
 		double value = 0.0;
 		for(int i = 0; i < DIMENSION; i++){
-			/*Check if Aircraft is null. Flight canceled!*/
+			/*Check if Aircraft is null. Flight canceled!*
 			if(pair.get(i).getAircraft() == null){
 				value += 100000;
 				break;
 			}
 			
 			String model = pair.get(i).getAircraft().getAircraft_model();
-			/*Time Difference for Schedule*/
+			/*Time Difference for Schedule*
 			int timeSDif = pair.get(i).getFlight().getSchedule_time_of_arrival().difWithMinutes(pair.get(i).getFlight().getSchedule_time_of_departure());
-			/*Time Difference for Schedule*/
+			/*Time Difference for Schedule*
 			
-			/*Distance Between Airports*/
+			/*Distance Between Airports*
 			String flightOrigin = pair.get(i).getFlight().getOrigin();
 			String flightDestination = pair.get(i).getFlight().getDestination();
 			int cityPairSize = DATA.getCity_pairs().size();
@@ -97,28 +162,28 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					break;
 				}
 			}
-			/*Distance Between Airports*/
+			/*Distance Between Airports*
 			
 			int aircraftModelSize = DATA.getAircraft_models().size();
 			for(int j = 0; j < aircraftModelSize; j++){
 				if(DATA.getAircraft_models().get(j).getAircraft_model().equals(model)){
-					/*Handling*/
+					/*Handling*
 					value += (DATA.getAircraft_models().get(j).getAirport_handling_cost() * 2);
-					/*Handling*/
+					/*Handling*
 					
-					/*Fuel Cost Using Schedule Time Difference*/
+					/*Fuel Cost Using Schedule Time Difference*
 					value += (DATA.getAircraft_models().get(j).getFuel_avg_cost_minute() * timeSDif);
-					/*Fuel Cost Using Schedule Time Difference*/
+					/*Fuel Cost Using Schedule Time Difference*
 					
-					/*Maintenance Cost Using Schedule Time Difference*/
+					/*Maintenance Cost Using Schedule Time Difference*
 					value += (DATA.getAircraft_models().get(j).getMaintenance_avg_cost_minute() * timeSDif);
-					/*Maintenance Cost Using Schedule Time Difference*/
+					/*Maintenance Cost Using Schedule Time Difference*
 					
-					/*ATC Cost Using Distance Between Airports*/
+					/*ATC Cost Using Distance Between Airports*
 					value += (DATA.getAircraft_models().get(j).getAtc_avg_cost_nautical_mile() * distanceNauticalMiles);
-					/*ATC Cost Using Distance Between Airports*/
+					/*ATC Cost Using Distance Between Airports*
 					
-					/*Get charges from Airports (TkOff, Land and Park)*/
+					/*Get charges from Airports (TkOff, Land and Park)*
 					String modelFleet = DATA.getAircraft_models().get(j).getFleet();
 					int airportChargeSize = DATA.getAirport_charges().size();
 					for(int k = 0, kk = 0; k < airportChargeSize; k++){
@@ -143,15 +208,69 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						if(kk==3)
 							break;
 					}
-					/*Get charges from Airports (TkOff, Land and Park)*/
+					/*Get charges from Airports (TkOff, Land and Park)*
 					break;
 				}
 			}
 		}
-		fitness = (int) value;
+		fitness = (int) value;*/
 	}
 	
-	public double getFitness() {
+	public double computeFlightCost(String modelFleet, String flightOrigin, String flightDestination, int flightTime, double parkTime,
+			int airport_handling_cost, double fuel_per_minute, double maintenance_perminute, double atc_per_mile, double distanceMiles) {
+		double value = 0.0;
+
+		/*Get charges from Airports (TkOff, Land and Park)*/
+		int airportChargeSize = DATA.getAirport_charges().size();
+		for(int k = 0, kk = 0; k < airportChargeSize; k++){
+			if(DATA.getAirport_charges().get(k).getFleet().equals(modelFleet)
+					&& DATA.getAirport_charges().get(k).getIata_code().equals(flightOrigin)
+					&& DATA.getAirport_charges().get(k).getCharge_type().equals("LND")){
+				value += DATA.getAirport_charges().get(k).getCharge();
+				kk++;
+			}
+			else if(DATA.getAirport_charges().get(k).getFleet().equals(modelFleet)
+					&& DATA.getAirport_charges().get(k).getIata_code().equals(flightDestination)
+					&& DATA.getAirport_charges().get(k).getCharge_type().equals("LND")){
+				value += DATA.getAirport_charges().get(k).getCharge();
+				kk++;
+			}
+			else if(DATA.getAirport_charges().get(k).getFleet().equals(modelFleet)
+					&& DATA.getAirport_charges().get(k).getIata_code().equals(flightDestination)
+					&& DATA.getAirport_charges().get(k).getCharge_type().equals("PRK")){
+				value += DATA.getAirport_charges().get(k).getCharge();
+				kk++;
+			}
+			if(kk==3)
+				break;
+		}
+		/*Get charges from Airports (TkOff, Land and Park)*/
+		
+		/* Flight costs */
+		/*Handling*/
+		value += airport_handling_cost * 2;
+		/*Handling*/
+		
+		/*Fuel Cost Using Schedule Time Difference*/
+		value += fuel_per_minute * flightTime;
+		/*Fuel Cost Using Schedule Time Difference*/
+		
+		/*Maintenance Cost Using Schedule Time Difference*/
+		value += maintenance_perminute * parkTime;
+		/*Maintenance Cost Using Schedule Time Difference*/
+		
+		/*ATC Cost Using Distance Between Airports*/
+		value += atc_per_mile * distanceMiles;
+		/*ATC Cost Using Distance Between Airports*/
+				
+		return value;
+	}
+
+	public int compareTo(PossibleSolution fs) {
+		return this.fitness - fs.getFitness();
+	}
+	
+	public int getFitness() {
 		return this.fitness;
 	}
 	
