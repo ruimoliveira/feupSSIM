@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 
 import tabuSearch.PossibleSolution;
@@ -35,10 +36,8 @@ public class TabuSearch {
 	/* Tabu Search Parameters */
 	private static int MAX_CYCLE_NUMBER;
 	private static int TABU_LIST_SIZE;
+	private static Queue<Integer[]> tabuList;
 	
-	private static LinkedList<AbstractMap.SimpleEntry<Integer, Integer>> tabuList;
-	
-	private static ArrayList<PossibleSolution> possibleSolutions;
 	private static PossibleSolution gBest;
 	
 	private static int firstBest;
@@ -110,8 +109,6 @@ public class TabuSearch {
 		MAX_CYCLE_NUMBER = 0;
 		TABU_LIST_SIZE = 0;
 		
-		possibleSolutions = null;
-		
 		tabuList = null;
 	
 		gBest = null;
@@ -158,9 +155,8 @@ public class TabuSearch {
 		
 		firstBest = 0;
 		gBest = null;
-		possibleSolutions = new ArrayList<PossibleSolution>();
 		
-		tabuList = new LinkedList<>();
+		tabuList = new LinkedList<Integer[]>();
 		
 		rand = new Random();
 		
@@ -250,15 +246,15 @@ public class TabuSearch {
 		PossibleSolution sBest = randomSolution();
 		
 		for(iteration=1; iteration <= MAX_CYCLE_NUMBER; iteration++) {
-			/* create solution candidates array*/
+			/* gets all solution candidates in the neighborhood */
 			ArrayList<PossibleSolution> candidateList = new ArrayList<>();
-
-			for (PossibleSolution candidate : sBest.generateNeighborhood(aircrafts)) {
-				
+			for (PossibleSolution candidate : sBest.generateNeighborhood(aircrafts, prototypeSolution)) {
+				if (!tabuList.contains(candidate.getTabuListEntrie())) {
+					candidateList.add(candidate);
+				}
 			}
 			
 			// TODO:
-			/* generate all sBest neighborhood solutions */
 			/*
 		    For ( Scandidate : Sbest-neighborhood )
 		        If ( ! ContainsAnyFeatures( Scandidate , TabuList))
@@ -306,60 +302,5 @@ public class TabuSearch {
 		randomSolution.computeFitness(aircrafts);
 
 		return randomSolution;
-		
-		/*
-		// dataset for checking feasibility
-		HashMap<Aircraft, ArrayList<Flight>> operationalDates = new HashMap<Aircraft, ArrayList<Flight>>();
-		for (Aircraft ac : aircrafts) {
-			operationalDates.put(ac, new ArrayList<Flight>());
-		}
-		
-		// create random solution -> contains set of pairs <flight, aircraft>, it's fitness, ...
-		ArrayList<Pair> tempPairs = new ArrayList<Pair>();
-		for (int j = 0; j < FLIGHTS_COUNT; j++) {
-			int flightIndex = j;
-			int aircraftIndex = rand.nextInt(AIRCRAFTS_COUNT);
-
-			Pair newPair = new Pair();
-			Flight flight = DATA.getFlights().get(flightIndex);
-			newPair.setFlight(flight);
-			newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
-			
-			while(!isFeasible(operationalDates, aircrafts.get(aircraftIndex), flight)) {
-				aircraftIndex = rand.nextInt(AIRCRAFTS_COUNT);
-				newPair.setAircraft(aircrafts.get(aircraftIndex), aircraftIndex);
-			}
-			tempPairs.add(newPair);
-			operationalDates.get(aircrafts.get(aircraftIndex)).add(flight);
-		}
-		
-		// pairing possibleSolution -> list<flight, aircraft>
-		if (ps.setPair(tempPairs) != FLIGHTS_COUNT)
-			System.out.println("Wrong flight-aircraft pairing! - init phase");
-		
-		// computing the value of objective function for the food source
-		ps.setMap(operationalDates);
-		ps.computeObjectiveFunction();
-		*/
-	}
-
-	/**
-	 * Checks if aircraft already operates on the certain date in same solution
-	 * @param operationalDates
-	 * @param aircraft
-	 * @param flight
-	 * @return true if aircraft is free on flight_date
-	 */
-	private static boolean isFeasible(HashMap<Aircraft, ArrayList<Flight>> operationalDates, Aircraft aircraft, Flight flight) {
-		
-		for (Flight f : operationalDates.get(aircraft)) {
-			if ( ! ((f.getSchedule_time_of_departure().compareTo(flight.getSchedule_time_of_departure()) == -1 &&
-					f.getSchedule_time_of_arrival().compareTo(flight.getSchedule_time_of_departure()) == -1) || 
-					(f.getSchedule_time_of_departure().compareTo(flight.getSchedule_time_of_arrival()) == 1 &&
-					f.getSchedule_time_of_arrival().compareTo(flight.getSchedule_time_of_arrival()) == 1)) )
-				return false;
-		}
-		
-		return true;
 	}
 }

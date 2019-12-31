@@ -165,7 +165,6 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		}
 		
 		fitness = (int) value;
-		System.out.println("fitness =" + fitness);
 	}
 	
 	public double computeFlightCost(String modelFleet, String flightOrigin, String flightDestination, int flightTime, double parkTime,
@@ -219,6 +218,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	}
 
 	public int compareTo(PossibleSolution fs) {
+		// positive if better fitness
 		return (int)(this.fitness - fs.getFitness());
 	}
 	
@@ -273,29 +273,51 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		return newSolution;
 	}
 	
-	public ArrayList<PossibleSolution> generateNeighborhood(ArrayList<Aircraft> aircrafts) {
+	public int[] getTabuListEntrie() {
+		return this.tabuListEntrie;
+	}
+	
+	public void setTabuListEntrie(int[] tabuListEntrie) {
+		this.tabuListEntrie = tabuListEntrie;
+	}
+	
+	public ArrayList<PossibleSolution> generateNeighborhood(ArrayList<Aircraft> aircrafts, PossibleSolution prototypeSolution) {
 		ArrayList<PossibleSolution> neighborhood = new ArrayList<PossibleSolution>();
-		
-		for (int positionIndex1=0; positionIndex1<solution.size(); positionIndex1++) {
-			int tempAircraftIndex1 = solution.get(positionIndex1);
-			for (int positionIndex2=1; positionIndex2<solution.size(); positionIndex2++) {
+
+		for (int positionIndex1=0; positionIndex1<solution.size()-1; positionIndex1++) {
+			for (int positionIndex2=positionIndex1+1; positionIndex2<solution.size(); positionIndex2++) {
+				/* solution replacer*/
 				ArrayList<Integer> newSolution = new ArrayList<Integer>(solution);
+				int tempAircraftIndex1 = solution.get(positionIndex1);
 				int tempAircraftIndex2 = solution.get(positionIndex2);
 				newSolution.set(positionIndex1, tempAircraftIndex2);
 				newSolution.set(positionIndex2, tempAircraftIndex1);
-				this.tabuListEntrie = new int[]{positionIndex1, positionIndex2};
 				
+				/* flight paths replacer */
+				ArrayList<ArrayList<Flight>> possibleFlightPaths = new ArrayList<>();
+				for (ArrayList<Flight> flightPath : this.newFlightPaths) {
+					ArrayList<Flight> possibleFlightPath = new ArrayList<Flight>(flightPath);
+					possibleFlightPaths.add(possibleFlightPath);
+				}
+				possibleFlightPaths.set(positionIndex1, this.newFlightPaths.get(positionIndex2));
+				possibleFlightPaths.set(positionIndex2, this.newFlightPaths.get(positionIndex1));
 				
-				/* TODO: replace on solution*/
+				/* makes tabu list entrie */
+				int[] newTabuListEntrie = new int[]{positionIndex1, positionIndex2};
+				
+				/* makes possible solution */
+				PossibleSolution candidate = prototypeSolution.manualCopy(aircrafts);
+				candidate.setSolution(newSolution, possibleFlightPaths);
+				candidate.setTabuListEntrie(newTabuListEntrie);
+				
 				/* build */
+				candidate.buildSolution(aircrafts);
+				
 				/* compute fitness */
+				candidate.computeFitness(aircrafts);
 				
-				
+				neighborhood.add(candidate);
 			}
-		}
-		
-		for (int aircraftIndex : solution) {
-			PossibleSolution candidate = this.manualCopy(aircrafts);
 		}
 		
 		return neighborhood;
