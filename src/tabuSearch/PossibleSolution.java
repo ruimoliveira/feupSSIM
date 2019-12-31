@@ -16,6 +16,8 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	private int DIMENSION;
 	private int fitness;
 	private HashMap<Aircraft, ArrayList<Flight>> map;
+	private ArrayList<Integer> solution;
+	private ArrayList<ArrayList<Flight>> newFlightPaths;
 
 	
 	/**
@@ -30,6 +32,8 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		for (Aircraft ac : aircrafts) {
 			map.put(ac, new ArrayList<Flight>());
 		}
+		this.solution = new ArrayList<Integer>();
+		this.newFlightPaths = new ArrayList<ArrayList<Flight>>();
 	}
 	/*
 	public void computeObjectiveFunction(){
@@ -117,6 +121,15 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	
 	public int getFitness() {
 		return this.fitness;
+	}
+	
+	public ArrayList<Integer> getSolution() {
+		return this.solution;
+	}
+	
+	public void setSolution(ArrayList<Integer> s, ArrayList<ArrayList<Flight>> possibleFlightPaths) {
+		this.solution = s;
+		this.newFlightPaths = possibleFlightPaths;
 	}
 	
 	public ArrayList<String> print() {

@@ -2,6 +2,7 @@ package tabuSearch;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -245,7 +246,6 @@ public class TabuSearch {
 	}
 	
 	private static void tsAlgorithm() {
-		
 		/* create a random solution */
 		PossibleSolution sBest = randomSolution();
 		
@@ -279,25 +279,32 @@ public class TabuSearch {
 	}
 
 	private static PossibleSolution randomSolution() {
+		/* A solution is given by it's aircraftIndexes
+		 * i.e.
+		 * given the arraylist<Integer> aircraftIndexes
+		 * it's values correspond to the index in this.aircrafts
+		 * and it's indexes give the flightPathIndex in this.possibleFlightPaths
+		 * 
+		 * so shuffling them both gives a random solution
+		 * */
+		Collections.shuffle(possibleFlightPaths);
+		Collections.shuffle(aircraftIndexes);
+		
+		/* From here on, it is easier to save only aircraftIndexes onto PossibleSolution
+		 * because we can get all the solution information from that arraylist
+		 * */
 		PossibleSolution possibleSolution = prototypeSolution.manualCopy(aircrafts);
-		
-		ArrayList<ArrayList<Flight>> availableFlightPaths = new ArrayList<>(possibleFlightPaths);
-		ArrayList<Integer> availableAircrafts = new ArrayList<>(aircraftIndexes);
-		
-		boolean hasRandomSolution = false;
-		
-		while (!hasRandomSolution) {
-			int flightPathIndex = rand.nextInt(availableFlightPaths.size());
-			int aircraftIndex = rand.nextInt(availableAircrafts.size());
-			
-			Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
-			Aircraft a = aircrafts.get(aircraftIndex);
-			
-			
-			if (availableFlightPaths.size() == 0 && availableAircrafts.size() == 0) {
-				hasRandomSolution = true;
-			}
-		}
+		ArrayList<Integer> solution = new ArrayList<>(aircraftIndexes);
+		prototypeSolution.setSolution(aircraftIndexes, possibleFlightPaths);
+		possibleSolution.setSolution(solution, possibleFlightPaths);
+
+		return possibleSolution;
+		/*
+		Flight firstFlightInSchedule = availableFlightPaths.get(flightPathIndex).get(0);
+		Aircraft a = aircrafts.get(aircraftIndex);
+		ArrayList<Flight> aFlightPath = possibleSolution.getMap().get(a);
+		Flight aircraftsLastFlight = aFlightPath.get(aFlightPath.size()-1);
+		*/
 		
 		/*
 		// dataset for checking feasibility
@@ -333,7 +340,6 @@ public class TabuSearch {
 		ps.setMap(operationalDates);
 		ps.computeObjectiveFunction();
 		*/
-		return possibleSolution;
 	}
 
 	/**
