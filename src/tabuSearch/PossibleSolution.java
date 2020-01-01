@@ -53,7 +53,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		ArrayList<Aircraft> aircrafts = DATA.getAircrafts();
 		double value = 0.0;
 		
-		System.out.println("POSSIBLE SOLUTION: <" + this.tabuListEntrie[0] + "," + this.tabuListEntrie[1] + ">");
+		//System.out.println("POSSIBLE SOLUTION: <" + this.tabuListEntrie[0] + "," + this.tabuListEntrie[1] + ">");
 		
 		for (int aircraftIndex=0; aircraftIndex<aircrafts.size(); aircraftIndex++) {
 			for (int flightPathIndex=0; flightPathIndex<solution.size(); flightPathIndex++) {
@@ -92,10 +92,10 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 
 					double distanceKM = 0.0,
 							distanceMiles = 0.0,
-							parkTime = 0.0;
+							parkTime = 1.0;
 
 
-					System.out.print("Aircraft (" + a + " -- " + aircraftIndex + ") & ");
+					//System.out.print("Aircraft (" + a + " -- " + aircraftIndex + ") & ");
 					
 					/* gets the last flight before the delayed Flight arrives destination 
 					 * and the first flight of the flightpaths to distribute*/
@@ -103,11 +103,13 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					if (map.get(a).size() != 0) {
 						Flight previousFlight = map.get(a).get(map.get(a).size()-1);
 
-						System.out.print(" Previous Flight (" + previousFlight + ") ----> ");
+						//System.out.print(" Previous Flight (" + previousFlight + ") ----> ");
 
 						/* if nextFlight departures before previousFlight arrives apply penalty  */
-						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0)
-							value += 150000.0;
+						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0) {
+							int penaltyMultiplier = 1000;
+							value += penaltyMultiplier * previousFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
+						}
 						
 						/* verify if flight is departing the airport it arrived on */
 						if (!previousFlight.getDestination().equals(nextFlight.getOrigin())) {
@@ -120,34 +122,34 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 							distanceMiles = getDistance(flightOrigin, flightDestination, 1);
 							
 							/*Time to get there*/
-							int flightTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(previousFlight.getSchedule_time_of_departure());
+							int flightTime = nextFlight.getSchedule_time_of_departure().difWithMinutes(previousFlight.getSchedule_time_of_arrival());
 							
 							/* if not possible to fly there: apply major penalty cost 
 							 * (arbitrarily, it takes at least 10 minutes per km for a plane to get somewhere)
 							 * */
-							if (distanceKM/flightTime > 10.0) {
+							if (flightTime <= 0 || distanceKM/flightTime > 10.0) {
 								value += 100000.0;
-								System.out.print(" no possible connection flight ----> ");
+								//System.out.print(" no possible connection flight ----> ");
 							}
 							/* introduce new flight cost */
 							else {
 								value += computeFlightCost(fleet_model, flightOrigin, flightDestination, flightTime, 0, airport_handling_cost, fuel_per_minute, maintenance_perminute, atc_per_mile, distanceMiles);
-								System.out.print(" has connection flight ----> ");
+								//System.out.print(" has connection flight ----> ");
 							}
-							/* No park time because */
-							parkTime = 0.0;
+							/* No park time because... */
+							parkTime = 1.0;
 							
 						} else {
 							/* Computes park time from previous flight */
 							/* verify if flights have time between them */
 							if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0)
-								parkTime = 0.0;
+								parkTime = 1.0;
 							else
-								parkTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
+								parkTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(previousFlight.getSchedule_time_of_departure());
 						}
 						
 						/* computes cost of previous flight */
-						int flightTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(previousFlight.getSchedule_time_of_arrival());
+						int flightTime = previousFlight.getSchedule_time_of_arrival().difWithMinutes(previousFlight.getSchedule_time_of_departure());
 						
 						/*Distance Between Airports*/
 						String flightOrigin = previousFlight.getOrigin();
@@ -157,14 +159,13 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						
 						value += computeFlightCost(fleet_model, flightOrigin, flightDestination, flightTime, parkTime, airport_handling_cost, fuel_per_minute, maintenance_perminute, atc_per_mile, distanceMiles);
 					} else {
-						System.out.print(" No Previous Flight () ----> ");
+						//System.out.print(" No Previous Flight () ----> ");
 					}
 					
-					System.out.println();
-					System.out.println("Next Flight (" + nextFlight + ") -- " + flightPathIndex + ")");
+					//System.out.println("Next Flight (" + nextFlight + ") -- " + flightPathIndex + ")");
 					
 					/* computes cost of next flight */
-					int flightTime = nextFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
+					int flightTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
 					
 					/*Distance Between Airports*/
 					String flightOrigin = nextFlight.getOrigin();
@@ -177,13 +178,14 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 			}
 		}
 		
-		System.out.println();
+		//System.out.println();
+		
 		
 		fitness = (int) value;
 	}
 	
 	public double getDistance(String flightOrigin, String flightDestination, int km0_mile1) {
-		double distance = 0.0;
+		double distance = 1.0;
 		int cityPairSize = DATA.getCity_pairs().size();
 		for(int k = 0; k < cityPairSize; k++){
 			if(DATA.getCity_pairs().get(k).validateOriDest(flightOrigin, flightDestination)){
@@ -256,9 +258,6 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 
 	public int compareTo(PossibleSolution fs) {
 		// positive means fs worse
-		if (this.fitness != fs.getFitness()) {
-			System.out.println("different values!");
-		}
 		return (int)(this.fitness - fs.getFitness());
 	}
 	
@@ -333,7 +332,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 				newSolution.set(positionIndex1, tempAircraftIndex2);
 				newSolution.set(positionIndex2, tempAircraftIndex1);
 				
-				/* flight paths replacer */
+				/* flight paths replacer *
 				ArrayList<ArrayList<Flight>> possibleFlightPaths = new ArrayList<>();
 				for (int index=0; index<this.newFlightPaths.size(); index++) {
 					if (index == positionIndex1) {
@@ -343,14 +342,14 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					} else {
 						possibleFlightPaths.add(this.newFlightPaths.get(index));
 					}
-				}
+				}*/
 				
 				/* makes tabu list entrie */
 				Integer[] newTabuListEntrie = new Integer[]{positionIndex1, positionIndex2};
 				
 				/* makes possible solution */
 				PossibleSolution candidate = prototypeSolution.manualCopy(aircrafts);
-				candidate.setSolution(newSolution, possibleFlightPaths);
+				candidate.setSolution(newSolution, newFlightPaths);
 				candidate.setTabuListEntrie(newTabuListEntrie);
 				
 				/* compute fitness */
