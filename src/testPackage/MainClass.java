@@ -9,8 +9,8 @@ import utils.Writer;
 public class MainClass {
 
 	public static void main(String[] args) {
-		int max_cycle_number = 100;
-		int tabu_list_size = 10;
+		int max_cycle_number = 20;
+		int tabu_list_size = 3;
 		
 		run_experiment(max_cycle_number, tabu_list_size);
 	}

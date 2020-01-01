@@ -219,6 +219,9 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 
 	public int compareTo(PossibleSolution fs) {
 		// positive means fs worse
+		if (this.fitness != fs.getFitness()) {
+			System.out.println("different values!");
+		}
 		return (int)(this.fitness - fs.getFitness());
 	}
 	

@@ -262,6 +262,7 @@ public class TabuSearch {
 			}
 			
 			if (sBest.compareTo(bestNeighbor) > 0) {
+				System.out.println("got a better one");
 				sBest = bestNeighbor;
 				tabuList.add(sBest.getTabuListEntrie());
 				while (tabuList.size() > TABU_LIST_SIZE) {
