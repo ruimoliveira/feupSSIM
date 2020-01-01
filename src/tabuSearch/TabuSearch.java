@@ -56,7 +56,7 @@ public class TabuSearch {
 	 * @param max_cycle_number
 	 * @param tabu_list_size
 	 */
-	public static void execute(int max_cycle_number, int tabu_list_size) {
+	public static void execute(int max_cycle_number, int tabu_list_size, int flight_to_delay) {
 		long timeline = System.currentTimeMillis();
 		System.out.println("Tabu Search - initializing...");
 		Reader.readAll();
@@ -78,7 +78,7 @@ public class TabuSearch {
 		System.out.println("Generating a delay on a random flight...");
 
 		/* Generating random event */
-		prepareSolutionPrototype();
+		prepareSolutionPrototype(flight_to_delay);
 		/* Generating random event */
 		
 		System.out.println("\t- Delay inserted, solution prototype prepared. \n\t- Time elapsed: "
@@ -164,12 +164,12 @@ public class TabuSearch {
 		aircraftIndexes = new ArrayList<>();
 	}
 	
-	private static void prepareSolutionPrototype() {
+	private static void prepareSolutionPrototype(int flight_to_delay) {
 		/* if we wanted to delay a random flight: */
 		//Flight delayedFlight = DATA.getFlights().get(rand.nextInt(DATA.getFlights().size()));
 		
 		/* we decided to pick one random flight on 2009-9-01 and then use the same for all the experiments */
-		Flight delayedFlight = DATA.getFlights().get(5820);
+		Flight delayedFlight = DATA.getFlights().get(flight_to_delay);
 		Aircraft delayedAircraft = new Aircraft();
 		
 		int aircraftIndex;
@@ -260,8 +260,8 @@ public class TabuSearch {
 				}
 			}
 			
-			if (sBest.compareTo(bestNeighbor) > 0) {
-				System.out.println("got a better one");
+			if (sBest.compareTo(bestNeighbor) >= 0) {
+				//System.out.println("got a better one");
 				sBest = bestNeighbor;
 				tabuList.add(sBest.getTabuListEntrie());
 				while (tabuList.size() > TABU_LIST_SIZE) {
