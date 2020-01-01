@@ -251,7 +251,6 @@ public class TabuSearch {
 			/* gets all solution candidates in the neighborhood */
 			ArrayList<PossibleSolution> candidateList = new ArrayList<>();
 			
-			
 			for (PossibleSolution candidate : sBest.generateNeighborhood(aircrafts, prototypeSolution)) {
 				if (!tabuList.contains(candidate.getTabuListEntrie())) {
 					candidateList.add(candidate);
@@ -294,8 +293,10 @@ public class TabuSearch {
 		prototypeSolution.setSolution(aircraftIndexes, possibleFlightPaths);
 		randomSolution.setSolution(solution, possibleFlightPaths);
 		
-		randomSolution.buildSolution(aircrafts);
-		randomSolution.computeFitness(aircrafts);
+		//randomSolution.buildSolution(aircrafts);
+		//randomSolution.computeFitness(aircrafts);
+		
+		randomSolution.computeScore();
 
 		return randomSolution;
 	}

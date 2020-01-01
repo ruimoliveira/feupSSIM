@@ -49,6 +49,115 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		}
 	}
 	
+	public void computeScore() {
+		ArrayList<Aircraft> aircrafts = DATA.getAircrafts();
+		double value = 0.0;
+		
+		for (int aircraftIndex=0; aircraftIndex<aircrafts.size(); aircraftIndex++) {
+			for (int flightPathIndex=0; flightPathIndex<solution.size(); flightPathIndex++) {
+				if (aircraftIndex == solution.get(flightPathIndex)) {
+					/* gets the last flight before the delayed Flight arrives destination 
+					 * and the first flight of the flightpaths to distribute*/
+					Aircraft a = aircrafts.get(aircraftIndex);
+					Flight previousFlight = map.get(a).get(map.get(a).size()-1);
+					Flight nextFlight = newFlightPaths.get(flightPathIndex).get(0);
+					
+
+					/* Aircraft info */
+					String model = a.getAircraft_model();
+
+					int aircraftModelSize = DATA.getAircraft_models().size(),
+						airport_handling_cost = 0;
+					double fuel_per_minute = 0.0,
+						maintenance_perminute = 0.0,
+						atc_per_mile = 0.0;
+					String fleet_model = null;
+					for(int j = 0; j < aircraftModelSize; j++){
+						if(DATA.getAircraft_models().get(j).getAircraft_model().equals(model)){
+							/*Handling modifier*/
+							airport_handling_cost = DATA.getAircraft_models().get(j).getAirport_handling_cost();
+							
+							/*Fuel Cost modifier*/
+							fuel_per_minute = DATA.getAircraft_models().get(j).getFuel_avg_cost_minute();
+							
+							/*Maintenance Cost modifier*/
+							maintenance_perminute = DATA.getAircraft_models().get(j).getMaintenance_avg_cost_minute();
+
+							/*ATC Cost modifier*/
+							atc_per_mile = DATA.getAircraft_models().get(j).getAtc_avg_cost_nautical_mile();
+							
+							/*Fleet Model*/
+							fleet_model = DATA.getAircraft_models().get(j).getFleet();
+						}
+					}
+					/* Aircraft info */
+
+					/* if nextFlight departures before previousFlight arrives apply penalty  */
+					if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0)
+						value += 150000.0;
+
+					
+					double distanceKM = 0.0,
+							distanceMiles = 0.0,
+							parkTime = 0.0;
+					
+					/* verify if flight is departing the airport it arrived on */
+					if (!previousFlight.getDestination().equals(nextFlight.getOrigin())) {
+						/* if not: try to make new flight to that airport */
+							
+						/*Distance Between Airports*/
+						String flightOrigin = previousFlight.getDestination();
+						String flightDestination = nextFlight.getOrigin();
+						int cityPairSize = DATA.getCity_pairs().size();
+						for(int k = 0; k < cityPairSize; k++){
+							if(DATA.getCity_pairs().get(k).validateOriDest(flightOrigin, flightDestination)){
+								distanceKM = DATA.getCity_pairs().get(k).getDistance_in_km();
+								distanceMiles = DATA.getCity_pairs().get(k).getDistance_in_nautical_miles();
+								break;
+							} else if(DATA.getCity_pairs().get(k).validateOriDest(flightDestination, flightOrigin)){
+								distanceKM = DATA.getCity_pairs().get(k).getDistance_in_km();
+								distanceMiles = DATA.getCity_pairs().get(k).getDistance_in_nautical_miles();
+								break;
+							}
+						}
+						/*Distance Between Airports*/
+						
+						if (distanceKM == 0.0 || distanceMiles == 0.0)
+							System.out.println("PROBLEM!: city pair not available");
+						
+						/*Time to get there*/
+						int flightTime = nextFlight.getSchedule_time_of_arrival().difWithMinutes(previousFlight.getSchedule_time_of_departure());
+						/*Time to get there*/
+						
+						/* if not possible to fly there: apply major penalty cost 
+						 * (arbitrarily, it takes at least 10 minutes per km for a plane to get somewhere)
+						 * */
+						if (distanceKM/flightTime > 10.0) {
+							value += 100000.0;
+						}
+						/* introduce new flight cost */
+						else
+							value += computeFlightCost(fleet_model, flightOrigin, flightDestination, flightTime, 0, airport_handling_cost, fuel_per_minute, maintenance_perminute, atc_per_mile, distanceMiles);
+
+						/* No park time because */
+						parkTime = 0.0;
+						
+					} else {
+						/* Computes park time from previous flight */
+
+						/* verify if flights have time between them */
+						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0)
+							parkTime = 0.0;
+						else
+							parkTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
+					}
+					
+					/* computes cost of previous flight*/
+				}
+			}
+		}
+	}
+	
 	public void computeFitness(ArrayList<Aircraft> aircrafts){
 		double value = 0.0;
 		
@@ -98,6 +207,9 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 					if (!previousFlight.getDestination().equals(nextFlight.getOrigin())) {
 						/* if not: make new flight to that airport */
 						
+						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0)
+							value += 150000;
+							
 						/*Distance Between Airports*/
 						String flightOrigin = nextFlight.getOrigin();
 						String flightDestination = previousFlight.getDestination();
@@ -131,7 +243,13 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 						
 					} else {
 						/* Computes park time from previous flight */
-						parkTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
+
+						/* verify if flights have time between them */
+						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0) {
+							value += 150000;
+							parkTime = 0.0;
+						} else
+							parkTime = previousFlight.getSchedule_time_of_departure().difWithMinutes(nextFlight.getSchedule_time_of_arrival());
 					}
 					
 				} else {
