@@ -332,18 +332,6 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 				newSolution.set(positionIndex1, tempAircraftIndex2);
 				newSolution.set(positionIndex2, tempAircraftIndex1);
 				
-				/* flight paths replacer *
-				ArrayList<ArrayList<Flight>> possibleFlightPaths = new ArrayList<>();
-				for (int index=0; index<this.newFlightPaths.size(); index++) {
-					if (index == positionIndex1) {
-						possibleFlightPaths.add(this.newFlightPaths.get(positionIndex2));
-					} else if (index == positionIndex2) {
-						possibleFlightPaths.add(this.newFlightPaths.get(positionIndex1));
-					} else {
-						possibleFlightPaths.add(this.newFlightPaths.get(index));
-					}
-				}*/
-				
 				/* makes tabu list entrie */
 				Integer[] newTabuListEntrie = new Integer[]{positionIndex1, positionIndex2};
 				
