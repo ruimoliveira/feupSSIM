@@ -244,6 +244,7 @@ public class TabuSearch {
 	private static void tsAlgorithm() {
 		/* create a random solution */
 		PossibleSolution sBest = randomSolution();
+		firstBest = sBest.getFitness();
 		PossibleSolution bestNeighbor = null;
 		
 		for(iteration=1; iteration <= MAX_CYCLE_NUMBER; iteration++) {
@@ -268,6 +269,8 @@ public class TabuSearch {
 				}
 			}
 		}
+		
+		gBestValue = sBest.getFitness();
 	}
 
 	private static PossibleSolution randomSolution() {
