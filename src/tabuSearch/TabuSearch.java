@@ -24,7 +24,6 @@ public class TabuSearch {
 	/* Performance statistics */
 	private static long runtime;
 	private static int iteration;
-	private static String iterationsData;
 	
 	/* Airport data */
 	private static int FLIGHTS_COUNT;
@@ -37,7 +36,8 @@ public class TabuSearch {
 	private static int MAX_CYCLE_NUMBER;
 	private static int TABU_LIST_SIZE;
 	private static Queue<Integer[]> tabuList;
-	
+
+	private static PossibleSolution firstSolution;
 	private static PossibleSolution gBest;
 	
 	private static int firstBest;
@@ -89,6 +89,12 @@ public class TabuSearch {
 		tsAlgorithm();
 		
 		runtime = System.currentTimeMillis() - timeline;
+
+		System.out.println("\nFirst Solution:");
+		printSolution(firstSolution);
+		System.out.println("\nBest Solution:");
+		printSolution(gBest);
+		
 		System.out.println("\nDone running. " 
 				+ "\n\t- Time elapsed: "
 				+ (System.currentTimeMillis() - timeline) + "ms.\n"
@@ -99,7 +105,6 @@ public class TabuSearch {
 	public static void clean() {
 		runtime = 0;
 		iteration = 0;
-		iterationsData = null;
 		
 		FLIGHTS_COUNT = 0;
 		AIRCRAFTS_COUNT = 0;
@@ -111,6 +116,7 @@ public class TabuSearch {
 		
 		tabuList = null;
 	
+		firstSolution = null;
 		gBest = null;
 		gBestValue = Integer.MAX_VALUE;
 		firstBest = Integer.MAX_VALUE;
@@ -122,7 +128,7 @@ public class TabuSearch {
 	}
 
 	/**
-	 * Initialization of the parameters of ABC algorithm.
+	 * Initialization of the parameters of Tabu Search algorithm.
 	 */
 	public static void initialize(int max_cycle_number, int tabu_list_size) {
 		aircrafts = DATA.getAircrafts();
@@ -244,6 +250,7 @@ public class TabuSearch {
 	private static void tsAlgorithm() {
 		/* create a random solution */
 		PossibleSolution sBest = randomSolution();
+		firstSolution = sBest;
 		firstBest = sBest.getFitness();
 		PossibleSolution bestNeighbor = null;
 		
@@ -271,6 +278,7 @@ public class TabuSearch {
 		}
 		
 		gBestValue = sBest.getFitness();
+		gBest = sBest;
 	}
 
 	private static PossibleSolution randomSolution() {
@@ -294,10 +302,31 @@ public class TabuSearch {
 		randomSolution.setSolution(solution, possibleFlightPaths);
 		
 		//randomSolution.buildSolution(aircrafts);
-		//randomSolution.computeFitness(aircrafts);
 		
 		randomSolution.computeScore();
 
 		return randomSolution;
+	}
+
+	private static void printSolution(PossibleSolution ps) {
+		ArrayList<Integer> solution = ps.getSolution();
+		for (int aircraftIndex=0; aircraftIndex<aircrafts.size(); aircraftIndex++) {
+			for (int flightPathIndex=0; flightPathIndex<solution.size(); flightPathIndex++) {
+				if (aircraftIndex == solution.get(flightPathIndex)) {
+					Aircraft a = aircrafts.get(aircraftIndex);
+					ArrayList<Flight> flightPathB4 = ps.getMap().get(a);
+					ArrayList<Flight> flightPathA = ps.getNewFlightPaths().get(flightPathIndex);
+
+					if (flightPathB4.size() > 0 && flightPathA.size() > 0)
+						System.out.println(flightPathB4.get(flightPathB4.size()-1) + " -> " + flightPathA.get(0));
+					else if (flightPathA.size() > 0)
+						System.out.println(a + " (no previous flight) -> " + flightPathA.get(0));
+					else
+						System.out.println(flightPathB4.get(flightPathB4.size()-1) + " -> (no next flight)");
+				}
+			}
+		}
+		
+		System.out.println();
 	}
 }

@@ -38,17 +38,7 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 		this.newFlightPaths = new ArrayList<ArrayList<Flight>>();
 		this.tabuListEntrie = new Integer[2];
 	}
-	/*
-	public void buildSolution(ArrayList<Aircraft> aircrafts) {
-		for (int flightPathIndex=0; flightPathIndex<solution.size(); flightPathIndex++) {
-			ArrayList<Flight> newFlightPath = new ArrayList<Flight>();
-			int aircraftIndex = solution.get(flightPathIndex);
-			newFlightPath.addAll(map.get(aircrafts.get(aircraftIndex)));
-			newFlightPath.addAll(newFlightPaths.get(flightPathIndex));
-			this.map.put(aircrafts.get(aircraftIndex), newFlightPath);
-		}
-	}
-	*/
+
 	public void computeScore() {
 		ArrayList<Aircraft> aircrafts = DATA.getAircrafts();
 		double value = 0.0;
@@ -105,10 +95,10 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 
 						//System.out.print(" Previous Flight (" + previousFlight + ") ----> ");
 
-						/* if nextFlight departures before previousFlight arrives apply penalty  */
+						/* if nextFlight departures before previousFlight arrives apply penalty */
 						if (previousFlight.getSchedule_time_of_arrival().compareTo(nextFlight.getSchedule_time_of_departure()) > 0) {
 							int penaltyMultiplier = 1000;
-							value += penaltyMultiplier * previousFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
+							value += penaltyMultiplier * newFlightPaths.size() * previousFlight.getSchedule_time_of_arrival().difWithMinutes(nextFlight.getSchedule_time_of_departure());
 						}
 						
 						/* verify if flight is departing the airport it arrived on */
@@ -318,6 +308,10 @@ public class PossibleSolution implements Comparable<PossibleSolution> {
 	
 	public void setTabuListEntrie(Integer[] tabuListEntrie) {
 		this.tabuListEntrie = tabuListEntrie;
+	}
+	
+	public ArrayList<ArrayList<Flight>> getNewFlightPaths() {
+		return this.newFlightPaths;
 	}
 	
 	public ArrayList<PossibleSolution> generateNeighborhood(ArrayList<Aircraft> aircrafts, PossibleSolution prototypeSolution) {
